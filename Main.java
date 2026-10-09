@@ -1,139 +1,147 @@
 import java.util.Scanner;
 
-/** Capa de aplicación: solo interactúa con la lista mediante su interfaz pública. */
 public class Main {
-    private static final Scanner in = new Scanner(System.in);
-    private static final ListaReproduccion lista = new ListaReproduccion();
+    static Scanner sc = new Scanner(System.in);
+    static ListaReproduccion lista = new ListaReproduccion();
 
     public static void main(String[] args) {
-        int opcion;
-        do {
-            imprimirMenu();
-            opcion = leerEntero("Opción: ");
-            ejecutar(opcion);
-        } while (opcion != 13);
+        int opcion = 0;
+        while (opcion != 13) {
+            menu();
+            opcion = leerEntero("Opcion: ");
+
+            if (opcion == 1) {
+                agregar(true);
+            } else if (opcion == 2) {
+                agregar(false);
+            } else if (opcion == 3) {
+                int id = leerEntero("Id a buscar: ");
+                Cancion c = lista.buscar(id);
+                if (c == null) {
+                    System.out.println("No existe una cancion con ese id");
+                } else {
+                    System.out.println("Encontrada: " + c);
+                }
+            } else if (opcion == 4) {
+                int id = leerEntero("Id a seleccionar: ");
+                if (lista.seleccionar(id)) {
+                    System.out.println("Cancion actual: " + lista.getActual());
+                } else {
+                    System.out.println("No existe una cancion con ese id");
+                }
+            } else if (opcion == 5) {
+                int id = leerEntero("Id a eliminar: ");
+                if (lista.eliminarPorId(id)) {
+                    System.out.println("Cancion eliminada");
+                    mostrarActual();
+                } else {
+                    System.out.println("No existe una cancion con ese id");
+                }
+            } else if (opcion == 6) {
+                Cancion c = lista.eliminarActual();
+                if (c == null) {
+                    System.out.println("La lista esta vacia");
+                } else {
+                    System.out.println("Eliminada: " + c);
+                    mostrarActual();
+                }
+            } else if (opcion == 7) {
+                mostrarActual();
+            } else if (opcion == 8) {
+                Cancion c = lista.avanzar();
+                if (c == null) {
+                    System.out.println("La lista esta vacia");
+                } else {
+                    System.out.println("Ahora: " + c);
+                }
+            } else if (opcion == 9) {
+                Cancion c = lista.retroceder();
+                if (c == null) {
+                    System.out.println("La lista esta vacia");
+                } else {
+                    System.out.println("Ahora: " + c);
+                }
+            } else if (opcion == 10) {
+                System.out.println("--- De inicio a fin ---");
+                System.out.println(lista.mostrarAdelante());
+                System.out.println("--- De fin a inicio ---");
+                System.out.println(lista.mostrarAtras());
+            } else if (opcion == 11) {
+                System.out.println("Cantidad de canciones: " + lista.getCantidad());
+            } else if (opcion == 12) {
+                int k = leerEntero("Cuantas canciones reproducir (k): ");
+                if (k <= 0) {
+                    System.out.println("k debe ser mayor que cero");
+                } else {
+                    System.out.println(lista.reproducir(k));
+                }
+            } else if (opcion == 13) {
+                System.out.println("Adios");
+            } else {
+                System.out.println("Opcion invalida, elige de 1 a 13");
+            }
+        }
     }
 
-    private static void imprimirMenu() {
-        System.out.println("\n===== GESTOR DE LISTA DE REPRODUCCIÓN =====");
-        System.out.println(" 1. Agregar canción al inicio");
-        System.out.println(" 2. Agregar canción al final");
-        System.out.println(" 3. Buscar canción por id");
-        System.out.println(" 4. Seleccionar canción por id (hacerla actual)");
-        System.out.println(" 5. Eliminar canción por id");
-        System.out.println(" 6. Eliminar la canción actual");
-        System.out.println(" 7. Consultar canción actual");
-        System.out.println(" 8. Avanzar a la siguiente");
-        System.out.println(" 9. Retroceder a la anterior");
-        System.out.println("10. Mostrar lista completa (ambos sentidos)");
+    static void menu() {
+        System.out.println();
+        System.out.println("===== LISTA DE REPRODUCCION =====");
+        System.out.println("1. Agregar al inicio");
+        System.out.println("2. Agregar al final");
+        System.out.println("3. Buscar por id");
+        System.out.println("4. Seleccionar por id");
+        System.out.println("5. Eliminar por id");
+        System.out.println("6. Eliminar la cancion actual");
+        System.out.println("7. Consultar la cancion actual");
+        System.out.println("8. Avanzar");
+        System.out.println("9. Retroceder");
+        System.out.println("10. Mostrar lista completa");
         System.out.println("11. Cantidad de canciones");
-        System.out.println("12. Simular reproducción de k canciones");
+        System.out.println("12. Simular reproduccion");
         System.out.println("13. Salir");
     }
 
-    private static void ejecutar(int opcion) {
-        switch (opcion) {
-            case 1: agregar(true); break;
-            case 2: agregar(false); break;
-            case 3: {
-                int id = leerEntero("Id a buscar: ");
-                Cancion c = lista.buscar(id);
-                System.out.println(c == null ? "No existe una canción con id " + id + "." : "Encontrada: " + c);
-                break;
-            }
-            case 4: {
-                int id = leerEntero("Id a seleccionar: ");
-                System.out.println(lista.seleccionar(id)
-                        ? "Canción actual: " + lista.getActual()
-                        : "No existe una canción con id " + id + ". La lista no cambió.");
-                break;
-            }
-            case 5: {
-                int id = leerEntero("Id a eliminar: ");
-                System.out.println(lista.eliminarPorId(id)
-                        ? "Canción eliminada."
-                        : "No existe una canción con id " + id + ". La lista no cambió.");
-                mostrarActualTrasCambio();
-                break;
-            }
-            case 6: {
-                Cancion eliminada = lista.eliminarActual();
-                System.out.println(eliminada == null ? "La lista está vacía." : "Eliminada: " + eliminada);
-                mostrarActualTrasCambio();
-                break;
-            }
-            case 7: {
-                Cancion c = lista.getActual();
-                System.out.println(c == null ? "La lista está vacía." : "Canción actual: " + c);
-                break;
-            }
-            case 8: {
-                Cancion c = lista.avanzar();
-                System.out.println(c == null ? "La lista está vacía." : "Ahora: " + c);
-                break;
-            }
-            case 9: {
-                Cancion c = lista.retroceder();
-                System.out.println(c == null ? "La lista está vacía." : "Ahora: " + c);
-                break;
-            }
-            case 10:
-                System.out.println("--- Adelante (inicio → fin) ---");
-                System.out.print(lista.mostrarAdelante());
-                System.out.println("--- Atrás (fin → inicio) ---");
-                System.out.print(lista.mostrarAtras());
-                break;
-            case 11:
-                System.out.println("Cantidad de canciones: " + lista.cantidad());
-                break;
-            case 12: {
-                int k = leerEntero("Cantidad k (entero positivo): ");
-                if (k <= 0) System.out.println("k debe ser un entero positivo.");
-                else System.out.print(lista.reproducir(k));
-                break;
-            }
-            case 13:
-                System.out.println("¡Hasta luego!");
-                break;
-            default:
-                System.out.println("Opción inválida. Elige un número del 1 al 13.");
-        }
-    }
-
-    private static void agregar(boolean alInicio) {
-        String titulo = leerTexto("Título: ");
-        String artista = leerTexto("Artista: ");
-        int duracion = leerEntero("Duración en segundos (>0): ");
+    static void agregar(boolean alInicio) {
+        System.out.print("Titulo: ");
+        String titulo = sc.nextLine();
+        System.out.print("Artista: ");
+        String artista = sc.nextLine();
+        int duracion = leerEntero("Duracion en segundos: ");
         try {
-            Cancion c = alInicio ? lista.agregarAlInicio(titulo, artista, duracion)
-                                 : lista.agregarAlFinal(titulo, artista, duracion);
+            Cancion c;
+            if (alInicio) {
+                c = lista.agregarAlInicio(titulo, artista, duracion);
+            } else {
+                c = lista.agregarAlFinal(titulo, artista, duracion);
+            }
             System.out.println("Agregada: " + c);
         } catch (IllegalArgumentException e) {
-            System.out.println("No se agregó la canción: " + e.getMessage());
+            System.out.println("No se agrego: " + e.getMessage());
         }
     }
 
-    private static void mostrarActualTrasCambio() {
+    static void mostrarActual() {
         Cancion c = lista.getActual();
-        System.out.println(c == null ? "(La lista quedó vacía)" : "Canción actual: " + c);
+        if (c == null) {
+            System.out.println("La lista esta vacia");
+        } else {
+            System.out.println("Cancion actual: " + c);
+        }
     }
 
-    /** Nunca lanza excepción por texto no numérico: repite hasta recibir un entero. */
-    private static int leerEntero(String mensaje) {
+    // repite hasta que escriban un numero entero
+    static int leerEntero(String mensaje) {
         while (true) {
             System.out.print(mensaje);
-            if (!in.hasNextLine()) return 13; // fin de entrada → salir limpio
-            String linea = in.nextLine().trim();
+            if (!sc.hasNextLine()) {
+                return 13; // se acabo la entrada, salir
+            }
+            String texto = sc.nextLine().trim();
             try {
-                return Integer.parseInt(linea);
+                return Integer.parseInt(texto);
             } catch (NumberFormatException e) {
-                System.out.println("Entrada inválida: escribe un número entero.");
+                System.out.println("Escribe un numero entero valido");
             }
         }
-    }
-
-    private static String leerTexto(String mensaje) {
-        System.out.print(mensaje);
-        return in.hasNextLine() ? in.nextLine() : "";
     }
 }

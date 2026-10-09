@@ -1,233 +1,220 @@
-/**
- * Pruebas reproducibles sin dependencias externas.
- * Cada caso imprime: estado inicial, operación, esperado y obtenido, y además
- * verifica automáticamente la integridad de los enlaces tras la operación.
- */
 public class PruebasLista {
-    static int total = 0, ok = 0;
+    static int total = 0;
+    static int correctas = 0;
 
     public static void main(String[] args) {
-        vacia();
-        primeraCancion();
-        unSoloNodo();
-        insercionesInicioFinal();
-        recorridoCincoCanciones();
-        navegacionCircular();
-        eliminaciones();
-        eliminarActual();
-        unicaCancion();
-        idInexistente();
-        reproduccionMayorQueN();
-        entradasInvalidas();
-        System.out.println("\n==============================");
-        System.out.println("RESULTADO: " + ok + " / " + total + " pruebas correctas");
-        if (ok != total) System.exit(1);
+        // ---------- lista vacia ----------
+        ListaReproduccion l = new ListaReproduccion();
+        String ini = estado(l);
+        probar("Vacia: estado inicial", ini, "ninguna", "cant=0 | actual=null | lista=(vacia)", estado(l), l);
+        probar("Vacia: avanzar", ini, "avanzar()", "null", "" + l.avanzar(), l);
+        probar("Vacia: retroceder", ini, "retroceder()", "null", "" + l.retroceder(), l);
+        probar("Vacia: eliminarActual", ini, "eliminarActual()", "null", "" + l.eliminarActual(), l);
+        probar("Vacia: buscar", ini, "buscar(1)", "null", "" + l.buscar(1), l);
+        probar("Vacia: eliminarPorId", ini, "eliminarPorId(1)", "false", "" + l.eliminarPorId(1), l);
+        probar("Vacia: reproducir", ini, "reproducir(3)", "La lista esta vacia, no hay nada que reproducir\n"
+                .trim(), l.reproducir(3).trim(), l);
+        probar("Vacia: mostrar", ini, "mostrarAdelante()", "La lista esta vacia", l.mostrarAdelante(), l);
+
+        // ---------- primera insercion ----------
+        l = new ListaReproduccion();
+        ini = estado(l);
+        l.agregarAlFinal("Uno", "X", 60);
+        probar("Primera cancion", ini, "agregarAlFinal(Uno)", "cant=1 | actual=1 | lista=1", estado(l), l);
+
+        // ---------- un solo nodo ----------
+        ini = estado(l);
+        l.avanzar();
+        probar("Un nodo: avanzar", ini, "avanzar()", "cant=1 | actual=1 | lista=1", estado(l), l);
+        l.retroceder();
+        probar("Un nodo: retroceder", ini, "retroceder()", "cant=1 | actual=1 | lista=1", estado(l), l);
+
+        // ---------- inserciones inicio y final ----------
+        l = lista(1);
+        ini = estado(l);
+        l.agregarAlFinal("T2", "A", 10);
+        l.agregarAlInicio("T3", "A", 10);
+        probar("Inserciones inicio y final", ini, "agregarAlFinal(T2), agregarAlInicio(T3)",
+                "cant=3 | actual=1 | lista=3,1,2", estado(l), l);
+
+        // ---------- recorridos con 5 canciones ----------
+        l = lista(3);
+        l.agregarAlInicio("T4", "A", 10);
+        l.agregarAlInicio("T5", "A", 10);
+        ini = estado(l);
+        probar("Recorrido hacia adelante", ini, "idsAdelante()", "5,4,1,2,3", l.idsAdelante(), l);
+        probar("Recorrido hacia atras", ini, "idsAtras()", "3,2,1,4,5", l.idsAtras(), l);
+        probar("Mostrar visita cada cancion una vez", ini, "mostrarAdelante() cuenta lineas",
+                "5", "" + l.mostrarAdelante().split("\n").length, l);
+
+        // ---------- navegacion circular ----------
+        l = lista(5);
+        l.seleccionar(5);
+        ini = estado(l);
+        l.avanzar();
+        probar("Avanzar desde la ultima", ini, "avanzar()", "cant=5 | actual=1 | lista=1,2,3,4,5", estado(l), l);
+        ini = estado(l);
+        l.retroceder();
+        probar("Retroceder desde la primera", ini, "retroceder()", "cant=5 | actual=5 | lista=1,2,3,4,5", estado(l), l);
+
+        // ---------- eliminaciones ----------
+        l = lista(5);
+        l.seleccionar(3);
+        ini = estado(l);
+        l.eliminarPorId(1);
+        probar("Eliminar el primero (la actual se conserva)", ini, "eliminarPorId(1)",
+                "cant=4 | actual=3 | lista=2,3,4,5", estado(l), l);
+
+        l = lista(5);
+        ini = estado(l);
+        l.eliminarPorId(5);
+        probar("Eliminar el ultimo", ini, "eliminarPorId(5)", "cant=4 | actual=1 | lista=1,2,3,4", estado(l), l);
+
+        l = lista(5);
+        ini = estado(l);
+        l.eliminarPorId(3);
+        probar("Eliminar uno intermedio", ini, "eliminarPorId(3)", "cant=4 | actual=1 | lista=1,2,4,5", estado(l), l);
+
+        // ---------- eliminar la actual ----------
+        l = lista(5);
+        l.seleccionar(3);
+        ini = estado(l);
+        l.eliminarActual();
+        probar("Eliminar actual intermedia", ini, "eliminarActual()", "cant=4 | actual=4 | lista=1,2,4,5", estado(l), l);
+
+        l = lista(5);
+        l.seleccionar(5);
+        ini = estado(l);
+        l.eliminarActual();
+        probar("Eliminar actual que es la ultima", ini, "eliminarActual()", "cant=4 | actual=1 | lista=1,2,3,4", estado(l), l);
+
+        l = lista(5);
+        ini = estado(l);
+        l.eliminarActual();
+        probar("Eliminar actual que es la primera", ini, "eliminarActual()", "cant=4 | actual=2 | lista=2,3,4,5", estado(l), l);
+
+        // ---------- unica cancion ----------
+        l = lista(1);
+        ini = estado(l);
+        l.eliminarActual();
+        probar("Eliminar la unica cancion", ini, "eliminarActual()", "cant=0 | actual=null | lista=(vacia)", estado(l), l);
+
+        l = lista(1);
+        l.eliminarPorId(1);
+        probar("Eliminar la unica cancion por id", ini, "eliminarPorId(1)", "cant=0 | actual=null | lista=(vacia)", estado(l), l);
+
+        l.agregarAlInicio("Nueva", "Z", 30);
+        probar("Usar la lista despues de vaciarla", "lista vacia", "agregarAlInicio(Nueva)",
+                "cant=1 | actual=2 | lista=2", estado(l), l);
+
+        // ---------- id inexistente ----------
+        l = lista(3);
+        ini = estado(l);
+        probar("Buscar id inexistente", ini, "buscar(99)", "null", "" + l.buscar(99), l);
+        probar("Seleccionar id inexistente", ini, "seleccionar(99)", "false", "" + l.seleccionar(99), l);
+        probar("Eliminar id inexistente", ini, "eliminarPorId(99)", "false y " + ini, l.eliminarPorId(99) + " y " + estado(l), l);
+
+        // ---------- reproduccion con k mayor que n ----------
+        l = lista(5);
+        ini = estado(l);
+        String salida = l.reproducir(12);
+        probar("Reproducir k=12 con 5 canciones: orden", ini, "reproducir(12)", "1,2,3,4,5,1,2,3,4,5,1,2", sacarIds(salida), l);
+        probar("Reproducir k=12: actual final", ini, "reproducir(12)", "cant=5 | actual=3 | lista=1,2,3,4,5", estado(l), l);
+
+        // ---------- entradas invalidas ----------
+        ListaReproduccion m = lista(2);
+        ini = estado(m);
+        String bien = "excepcion y " + ini;
+        try {
+            m.agregarAlFinal("a", "b", 0);
+            probar("Duracion 0", ini, "agregarAlFinal(a,b,0)", bien, "sin excepcion", m);
+        } catch (IllegalArgumentException e) {
+            probar("Duracion 0", ini, "agregarAlFinal(a,b,0)", bien, "excepcion y " + estado(m), m);
+        }
+        try {
+            m.agregarAlInicio("a", "b", -5);
+            probar("Duracion negativa", ini, "agregarAlInicio(a,b,-5)", bien, "sin excepcion", m);
+        } catch (IllegalArgumentException e) {
+            probar("Duracion negativa", ini, "agregarAlInicio(a,b,-5)", bien, "excepcion y " + estado(m), m);
+        }
+        try {
+            m.agregarAlFinal("  ", "b", 10);
+            probar("Titulo vacio", ini, "agregarAlFinal('  ',b,10)", bien, "sin excepcion", m);
+        } catch (IllegalArgumentException e) {
+            probar("Titulo vacio", ini, "agregarAlFinal('  ',b,10)", bien, "excepcion y " + estado(m), m);
+        }
+        try {
+            m.agregarAlFinal("a", null, 10);
+            probar("Artista nulo", ini, "agregarAlFinal(a,null,10)", bien, "sin excepcion", m);
+        } catch (IllegalArgumentException e) {
+            probar("Artista nulo", ini, "agregarAlFinal(a,null,10)", bien, "excepcion y " + estado(m), m);
+        }
+        try {
+            m.reproducir(0);
+            probar("k = 0", ini, "reproducir(0)", bien, "sin excepcion", m);
+        } catch (IllegalArgumentException e) {
+            probar("k = 0", ini, "reproducir(0)", bien, "excepcion y " + estado(m), m);
+        }
+        try {
+            m.reproducir(-3);
+            probar("k negativo", ini, "reproducir(-3)", bien, "sin excepcion", m);
+        } catch (IllegalArgumentException e) {
+            probar("k negativo", ini, "reproducir(-3)", bien, "excepcion y " + estado(m), m);
+        }
+        // los ids fallidos no se gastan: el siguiente valido debe ser el 3
+        m.agregarAlFinal("ok", "ok", 10);
+        probar("Los ids no se gastan con datos invalidos", ini, "agregarAlFinal valido",
+                "cant=3 | actual=1 | lista=1,2,3", estado(m), m);
+
+        System.out.println();
+        System.out.println("RESULTADO: " + correctas + " de " + total + " pruebas correctas");
     }
 
-    // ------------------------------------------------------------ utilidades
-
-    static ListaReproduccion crear(int n) { // ids 1..n insertados al final; actual = 1
+    // crea una lista con n canciones (ids 1..n) agregadas al final
+    static ListaReproduccion lista(int n) {
         ListaReproduccion l = new ListaReproduccion();
-        for (int i = 1; i <= n; i++) l.agregarAlFinal("T" + i, "A" + i, 100 + i);
+        for (int i = 1; i <= n; i++) {
+            l.agregarAlFinal("T" + i, "A" + i, 100 + i);
+        }
         return l;
     }
 
     static String estado(ListaReproduccion l) {
-        Cancion a = l.getActual();
-        return "lista=" + l.idsAdelante() + " | cant=" + l.cantidad()
-                + " | actual=" + (a == null ? "null" : a.getId());
-    }
-
-    static void caso(String nombre, String inicial, String operacion,
-                     String esperado, String obtenido, ListaReproduccion l) {
-        total++;
-        boolean integra = l.verificarIntegridad();
-        boolean paso = esperado.equals(obtenido) && integra;
-        if (paso) ok++;
-        System.out.println("\n[" + (paso ? "PASA" : "FALLA") + "] " + nombre);
-        System.out.println("  Estado inicial : " + inicial);
-        System.out.println("  Operación      : " + operacion);
-        System.out.println("  Esperado       : " + esperado);
-        System.out.println("  Obtenido       : " + obtenido);
-        System.out.println("  Enlaces íntegros: " + integra
-                + " | atrás=" + l.idsAtras());
-    }
-
-    static String idsDe(String texto) { // extrae los #id de la salida de reproducir()
-        StringBuilder sb = new StringBuilder();
-        for (String linea : texto.split("\n")) {
-            int i = linea.indexOf('#');
-            int j = linea.indexOf(' ', i);
-            if (i >= 0) { if (sb.length() > 0) sb.append(','); sb.append(linea, i + 1, j); }
+        String actual = "null";
+        if (l.getActual() != null) {
+            actual = "" + l.getActual().getId();
         }
-        return sb.toString();
+        return "cant=" + l.getCantidad() + " | actual=" + actual + " | lista=" + l.idsAdelante();
     }
 
-    // ------------------------------------------------------------ casos
-
-    static void vacia() {
-        ListaReproduccion l = new ListaReproduccion();
-        String ini = estado(l);
-        caso("Lista vacía: estado", ini, "(ninguna)", "lista=(vacía) | cant=0 | actual=null", estado(l), l);
-        caso("Lista vacía: avanzar", ini, "avanzar()", "null", String.valueOf(l.avanzar()), l);
-        caso("Lista vacía: retroceder", ini, "retroceder()", "null", String.valueOf(l.retroceder()), l);
-        caso("Lista vacía: eliminarActual", ini, "eliminarActual()", "null", String.valueOf(l.eliminarActual()), l);
-        caso("Lista vacía: buscar(1)", ini, "buscar(1)", "null", String.valueOf(l.buscar(1)), l);
-        caso("Lista vacía: reproducir(3)", ini, "reproducir(3)",
-                "La lista está vacía: no hay nada que reproducir.", l.reproducir(3), l);
-        caso("Lista vacía: mostrar", ini, "mostrarAdelante()", "La lista está vacía.", l.mostrarAdelante(), l);
+    // saca los ids de las lineas "Reproduciendo: #3 | ..."
+    static String sacarIds(String texto) {
+        String ids = "";
+        String[] lineas = texto.split("\n");
+        for (int i = 0; i < lineas.length; i++) {
+            int a = lineas[i].indexOf('#');
+            int b = lineas[i].indexOf(' ', a);
+            if (i > 0) {
+                ids += ",";
+            }
+            ids += lineas[i].substring(a + 1, b);
+        }
+        return ids;
     }
 
-    static void primeraCancion() {
-        ListaReproduccion l = new ListaReproduccion();
-        String ini = estado(l);
-        l.agregarAlFinal("Uno", "X", 60);
-        caso("Primera inserción", ini, "agregarAlFinal(Uno)",
-                "lista=1 | cant=1 | actual=1", estado(l), l);
-    }
-
-    static void unSoloNodo() {
-        ListaReproduccion l = crear(1);
-        String ini = estado(l);
-        l.avanzar();
-        caso("1 nodo: avanzar", ini, "avanzar()", "lista=1 | cant=1 | actual=1", estado(l), l);
-        l.retroceder();
-        caso("1 nodo: retroceder", ini, "retroceder()", "lista=1 | cant=1 | actual=1", estado(l), l);
-    }
-
-    static void insercionesInicioFinal() {
-        ListaReproduccion l = crear(1);
-        String ini = estado(l);
-        l.agregarAlFinal("T2", "A", 10);
-        l.agregarAlInicio("T3", "A", 10);
-        caso("Inserciones inicio/final (actual no cambia)", ini,
-                "agregarAlFinal(T2); agregarAlInicio(T3)",
-                "lista=3,1,2 | cant=3 | actual=1", estado(l), l);
-    }
-
-    static void recorridoCincoCanciones() {
-        ListaReproduccion l = crear(3);                // 1,2,3
-        l.agregarAlInicio("T4", "A", 10);              // 4,1,2,3
-        l.agregarAlInicio("T5", "A", 10);              // 5,4,1,2,3
-        String ini = estado(l);
-        caso("Recorrido adelante (5 canciones)", ini, "idsAdelante()", "5,4,1,2,3", l.idsAdelante(), l);
-        caso("Recorrido atrás (5 canciones)", ini, "idsAtras()", "3,2,1,4,5", l.idsAtras(), l);
-        String txt = l.mostrarAdelante();
-        caso("mostrarAdelante visita cada canción una vez", ini, "mostrarAdelante() → nº de líneas",
-                "5", String.valueOf(txt.split("\n").length), l);
-    }
-
-    static void navegacionCircular() {
-        ListaReproduccion l = crear(5);
-        l.seleccionar(5);
-        String ini = estado(l);
-        l.avanzar();
-        caso("Avance desde la última hacia la primera", ini, "avanzar()",
-                "lista=1,2,3,4,5 | cant=5 | actual=1", estado(l), l);
-        ini = estado(l);
-        l.retroceder();
-        caso("Retroceso desde la primera hacia la última", ini, "retroceder()",
-                "lista=1,2,3,4,5 | cant=5 | actual=5", estado(l), l);
-    }
-
-    static void eliminaciones() {
-        ListaReproduccion l = crear(5); l.seleccionar(3);
-        String ini = estado(l);
-        l.eliminarPorId(1);
-        caso("Eliminar el primero (actual distinta se conserva)", ini, "eliminarPorId(1)",
-                "lista=2,3,4,5 | cant=4 | actual=3", estado(l), l);
-
-        l = crear(5);
-        ini = estado(l);
-        l.eliminarPorId(5);
-        caso("Eliminar el último", ini, "eliminarPorId(5)",
-                "lista=1,2,3,4 | cant=4 | actual=1", estado(l), l);
-
-        l = crear(5);
-        ini = estado(l);
-        l.eliminarPorId(3);
-        caso("Eliminar un intermedio", ini, "eliminarPorId(3)",
-                "lista=1,2,4,5 | cant=4 | actual=1", estado(l), l);
-    }
-
-    static void eliminarActual() {
-        ListaReproduccion l = crear(5); l.seleccionar(3);
-        String ini = estado(l);
-        l.eliminarActual();
-        caso("Eliminar la actual (intermedia): pasa a la que le seguía", ini, "eliminarActual()",
-                "lista=1,2,4,5 | cant=4 | actual=4", estado(l), l);
-
-        l = crear(5); l.seleccionar(5);
-        ini = estado(l);
-        l.eliminarActual();
-        caso("Eliminar la actual siendo la última: da la vuelta al inicio", ini, "eliminarActual()",
-                "lista=1,2,3,4 | cant=4 | actual=1", estado(l), l);
-
-        l = crear(5);
-        ini = estado(l);
-        l.eliminarActual();
-        caso("Eliminar la actual siendo la primera", ini, "eliminarActual()",
-                "lista=2,3,4,5 | cant=4 | actual=2", estado(l), l);
-    }
-
-    static void unicaCancion() {
-        ListaReproduccion l = crear(1);
-        String ini = estado(l);
-        l.eliminarActual();
-        caso("Eliminar la única canción (eliminarActual)", ini, "eliminarActual()",
-                "lista=(vacía) | cant=0 | actual=null", estado(l), l);
-        l = crear(1);
-        l.eliminarPorId(1);
-        caso("Eliminar la única canción (por id)", ini, "eliminarPorId(1)",
-                "lista=(vacía) | cant=0 | actual=null", estado(l), l);
-        // y se puede volver a usar
-        l.agregarAlInicio("Nueva", "Z", 30);
-        caso("Reutilizar la lista tras vaciarla", "lista=(vacía)", "agregarAlInicio(Nueva)",
-                "lista=2 | cant=1 | actual=2", estado(l), l); // el id 1 ya se usó: los ids nunca se reutilizan
-    }
-
-    static void idInexistente() {
-        ListaReproduccion l = crear(3);
-        String ini = estado(l);
-        caso("Buscar id inexistente", ini, "buscar(99)", "null", String.valueOf(l.buscar(99)), l);
-        caso("Seleccionar id inexistente", ini, "seleccionar(99)", "false", String.valueOf(l.seleccionar(99)), l);
-        caso("Eliminar id inexistente (lista sin cambios)", ini, "eliminarPorId(99)",
-                "false | " + ini, l.eliminarPorId(99) + " | " + estado(l), l);
-    }
-
-    static void reproduccionMayorQueN() {
-        ListaReproduccion l = crear(5);
-        String ini = estado(l);
-        String salida = l.reproducir(12);
-        caso("Reproducción k=12 con n=5 (más de una vuelta): canciones mostradas", ini, "reproducir(12)",
-                "1,2,3,4,5,1,2,3,4,5,1,2", idsDe(salida), l);
-        caso("Reproducción k=12: actual final", ini, "reproducir(12)",
-                "lista=1,2,3,4,5 | cant=5 | actual=3", estado(l), l);
-    }
-
-    static void entradasInvalidas() {
-        ListaReproduccion l = crear(2);
-        String ini = estado(l);
-        caso("Duración 0", ini, "agregarAlFinal(\"a\",\"b\",0)", "IllegalArgumentException | " + ini,
-                intentar(() -> l.agregarAlFinal("a", "b", 0)) + " | " + estado(l), l);
-        caso("Duración negativa", ini, "agregarAlInicio(\"a\",\"b\",-5)", "IllegalArgumentException | " + ini,
-                intentar(() -> l.agregarAlInicio("a", "b", -5)) + " | " + estado(l), l);
-        caso("Título vacío", ini, "agregarAlFinal(\"  \",\"b\",10)", "IllegalArgumentException | " + ini,
-                intentar(() -> l.agregarAlFinal("  ", "b", 10)) + " | " + estado(l), l);
-        caso("Artista nulo", ini, "agregarAlFinal(\"a\",null,10)", "IllegalArgumentException | " + ini,
-                intentar(() -> l.agregarAlFinal("a", null, 10)) + " | " + estado(l), l);
-        caso("k = 0", ini, "reproducir(0)", "IllegalArgumentException | " + ini,
-                intentar(() -> l.reproducir(0)) + " | " + estado(l), l);
-        caso("k negativo", ini, "reproducir(-3)", "IllegalArgumentException | " + ini,
-                intentar(() -> l.reproducir(-3)) + " | " + estado(l), l);
-        // Un fallo de validación no debe consumir ids: la próxima inserción válida recibe el id 3
-        l.agregarAlFinal("ok", "ok", 10);
-        caso("Los ids no se consumen en inserciones inválidas", ini, "agregarAlFinal válido",
-                "lista=1,2,3 | cant=3 | actual=1", estado(l), l);
-    }
-
-    static String intentar(Runnable r) {
-        try { r.run(); return "sin excepción"; }
-        catch (IllegalArgumentException e) { return "IllegalArgumentException"; }
+    static void probar(String nombre, String inicial, String operacion, String esperado, String obtenido, ListaReproduccion l) {
+        total++;
+        boolean enlaces = l.verificarEnlaces();
+        boolean paso = esperado.equals(obtenido) && enlaces;
+        if (paso) {
+            correctas++;
+        }
+        System.out.println();
+        System.out.println("[" + (paso ? "OK" : "FALLA") + "] " + nombre);
+        System.out.println("  Estado inicial: " + inicial);
+        System.out.println("  Operacion:      " + operacion);
+        System.out.println("  Esperado:       " + esperado);
+        System.out.println("  Obtenido:       " + obtenido);
+        System.out.println("  Enlaces bien:   " + enlaces + " | recorrido atras: " + l.idsAtras());
     }
 }

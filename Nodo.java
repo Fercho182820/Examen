@@ -1,14 +1,9 @@
-/**
- * Nodo de la lista doblemente enlazada circular.
- * Los enlaces son de paquete (sin modificador) para que solo ListaReproduccion
- * pueda manipularlos: el menú nunca toca referencias directamente.
- */
-class Nodo {
-    final Cancion cancion;
-    Nodo anterior;
-    Nodo siguiente;
+public class Nodo {
+    Cancion cancion;
+    Nodo ant;
+    Nodo sig;
 
-    Nodo(Cancion cancion) {
+    public Nodo(Cancion cancion) {
         this.cancion = cancion;
     }
 }
